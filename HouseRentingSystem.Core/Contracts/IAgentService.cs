@@ -10,5 +10,7 @@
 
         void Create(string userId, string phoneNumber);
 
+        int GetAgentId(string userId);
+
     }
 }

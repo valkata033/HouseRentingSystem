@@ -11,6 +11,13 @@ namespace HouseRentingSystem.Core.Contracts
     {
         Task<IEnumerable<HouseHomeModel>> LastThreeHouses();
 
+        Task<IEnumerable<HouseCategoryServiceModel>> AllCategories();
+
+        bool CategoryExist(int categoryId);
+
+        int Create(string title, string address, string description,
+            string imageUrl, decimal price, int categoryId, int agentId);
+
 
     }
 }

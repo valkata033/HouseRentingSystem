@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace HouseRentingSystem.Core.Models.House
 {
-    public class HouseModel
+    public class HouseCategoryServiceModel
     {
+        public int Id { get; set; }
+
+        public string Name { get; set; } = null!;
     }
 }

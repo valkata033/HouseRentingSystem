@@ -5,11 +5,16 @@ namespace HouseRentingSystem.Core.Services
 {
     public class AgentService : IAgentService
     {
-        private readonly ApplicationDbContext context;
+        private readonly HouseRentingDbContext context;
 
-        public AgentService(ApplicationDbContext _context)
+        public AgentService(HouseRentingDbContext _context)
         {
             context = _context;
+        }
+
+        public int GetAgentId(string userId)
+        {
+            return context.Agents.FirstOrDefault(x => x.UserId == userId).Id;
         }
 
         public async void Create(string userId, string phoneNumber)

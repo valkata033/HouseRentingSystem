@@ -1,4 +1,6 @@
-﻿using HouseRentingSystem.Core.Models.House;
+﻿using HouseRentingSystem.Core.Contracts;
+using HouseRentingSystem.Core.Models.House;
+using HouseRentingSystem.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +9,15 @@ namespace HouseRentingSystem.Controllers
     [Authorize]
     public class HouseController : Controller
     {
+        private readonly IHouseService houses;
+        private readonly IAgentService agents;
+
+        public HouseController(IHouseService _houses, IAgentService _agents)
+        {
+            houses = _houses;
+            agents = _agents;
+        }
+
         [AllowAnonymous]
         public async Task<IActionResult> All()
         {
@@ -31,29 +42,58 @@ namespace HouseRentingSystem.Controllers
         }
 
         [HttpGet]
-        public IActionResult Add()
+        public async Task<IActionResult> Add()
         {
-            return View();
+            if (!this.agents.ExistById(this.User.GetUserId()))
+            {
+                return RedirectToAction(nameof(AgentController.Become), "Agent");
+            }
+
+            return View(new HouseFormModel
+            {
+                Categories = await houses.AllCategories()
+            });
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add(HouseModel model)
+        public async Task<IActionResult> Add(HouseFormModel model)
         {
-            int id = 1;
+            if (!this.agents.ExistById(this.User.GetUserId()))
+            {
+                return RedirectToAction(nameof(AgentController.Become), "Agent");
+            }
 
-            return RedirectToAction(nameof(Details), new { id });
+            if (!this.houses.CategoryExist(model.CategoryId))
+            {
+                this.ModelState.AddModelError(nameof(model.CategoryId),
+                    "Category does not exist.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                model.Categories = await houses.AllCategories();
+
+                return View(model);
+            }
+
+            var agentId = agents.GetAgentId(this.User.GetUserId());
+
+            var newHouseId = houses.Create(model.Title, model.Address, model.Description,
+                model.ImageUrl, model.PricePerMonth, model.CategoryId, agentId);
+
+            return RedirectToAction(nameof(Details), new { id = newHouseId });
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var model = new HouseModel();
+            var model = new HouseFormModel();
 
             return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, HouseModel model)
+        public async Task<IActionResult> Edit(int id, HouseFormModel model)
         {
             return RedirectToAction(nameof(Details), new { id });
         }
