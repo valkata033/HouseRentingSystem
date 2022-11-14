@@ -44,7 +44,7 @@ namespace HouseRentingSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Add()
         {
-            if (!this.agents.ExistById(this.User.GetUserId()))
+            if (await agents.ExistById(this.User.GetUserId()) == false)
             {
                 return RedirectToAction(nameof(AgentController.Become), "Agent");
             }
@@ -58,7 +58,7 @@ namespace HouseRentingSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> Add(HouseFormModel model)
         {
-            if (!this.agents.ExistById(this.User.GetUserId()))
+            if (await agents.ExistById(this.User.GetUserId()) == false)
             {
                 return RedirectToAction(nameof(AgentController.Become), "Agent");
             }

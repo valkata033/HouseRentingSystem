@@ -1,23 +1,25 @@
 ﻿using HouseRentingSystem.Core.Contracts;
 using HouseRentingSystem.Infrastructure.Data;
+using HouseRentingSystem.Infrastructure.Data.Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace HouseRentingSystem.Core.Services
 {
     public class AgentService : IAgentService
     {
-        private readonly HouseRentingDbContext context;
+        private readonly IRepository repo;
 
-        public AgentService(HouseRentingDbContext _context)
+        public AgentService(IRepository _repo)
         {
-            context = _context;
+            repo = _repo;
         }
 
         public int GetAgentId(string userId)
         {
-            return context.Agents.FirstOrDefault(x => x.UserId == userId).Id;
+            return repo.All<Agent>().FirstOrDefaultAsync(x => x.UserId == userId).Id;
         }
 
-        public async void Create(string userId, string phoneNumber)
+        public async Task Create(string userId, string phoneNumber)
         {
             var agent = new Agent()
             {
@@ -25,24 +27,24 @@ namespace HouseRentingSystem.Core.Services
                 PhoneNumber = phoneNumber
             };
 
-            await context.Agents.AddAsync(agent);
-            await context.SaveChangesAsync();
+            await repo.AddAsync(agent);
+            await repo.SaveChangesAsync();
         }
 
-        public bool ExistById(string userId)
+        public async Task<bool> ExistById(string userId)
         {
-            return context.Agents.Any(x => x.UserId == userId);
+            return await repo.All<Agent>().AnyAsync(x => x.UserId == userId);
 
         }
 
-        public bool UserHasRents(string userId)
+        public async Task<bool> UserHasRents(string userId)
         {
-            return context.Houses.Any(x => x.RenterId == userId);
+            return await repo.All<House>().AnyAsync(x => x.RenterId == userId);
         }
 
-        public bool UserWithPhoneNumberExist(string phoneNumber)
+        public async Task<bool> UserWithPhoneNumberExist(string phoneNumber)
         {
-            return context.Agents.Any(x => x.PhoneNumber == phoneNumber);
+            return await repo.All<Agent>().AnyAsync(x => x.PhoneNumber == phoneNumber);
         }
     }
 }

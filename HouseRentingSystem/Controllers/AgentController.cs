@@ -17,9 +17,9 @@ namespace HouseRentingSystem.Controllers
         }
 
         [HttpGet]
-        public IActionResult Become()
+        public async Task<IActionResult> Become()
         {
-            if (this.service.ExistById(this.User.GetUserId()))
+            if (await service.ExistById(this.User.GetUserId()))
             {
                 return BadRequest();
             }
@@ -31,18 +31,18 @@ namespace HouseRentingSystem.Controllers
         {
             var userId = this.User.GetUserId();
 
-            if (service.ExistById(userId))
+            if (await service.ExistById(userId))
             {
                 return BadRequest();
             }
 
-            if (service.UserWithPhoneNumberExist(model.PhoneNumber))
+            if (await service.UserWithPhoneNumberExist(model.PhoneNumber))
             {
                 ModelState.AddModelError(nameof(model.PhoneNumber), 
                     "Phone number already exist. Enter another one.");
             }
 
-            if (service.UserHasRents(userId))
+            if (await service.UserHasRents(userId))
             {
                 ModelState.AddModelError("Error",
                     "You should have no rents to become an agent.");
@@ -53,7 +53,7 @@ namespace HouseRentingSystem.Controllers
                 return View(model);
             }
 
-            service.Create(userId, model.PhoneNumber);
+            await service.Create(userId, model.PhoneNumber);
 
             return RedirectToAction(nameof(HouseController.All), "House");
         }

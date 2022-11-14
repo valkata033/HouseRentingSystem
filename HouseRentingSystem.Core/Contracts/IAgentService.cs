@@ -2,13 +2,13 @@
 {
     public interface IAgentService
     {
-        bool ExistById(string userId);
+        Task<bool> ExistById(string userId);
 
-        bool UserWithPhoneNumberExist(string phoneNumber);
+        Task<bool> UserWithPhoneNumberExist(string phoneNumber);
 
-        bool UserHasRents(string userId);
+        Task<bool> UserHasRents(string userId);
 
-        void Create(string userId, string phoneNumber);
+        Task Create(string userId, string phoneNumber);
 
         int GetAgentId(string userId);
 
