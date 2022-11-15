@@ -21,14 +21,14 @@ namespace HouseRentingSystem.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> All()
         {
-            var model = new HousesQueryModel();
+            var model = new HousesQueryServiceModel();
 
             return View(model);
         }
 
         public async Task<IActionResult> Mine()
         {
-            var model = new HousesQueryModel();
+            var model = new HousesQueryServiceModel();
 
             return View(model);
         }
@@ -44,7 +44,7 @@ namespace HouseRentingSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Add()
         {
-            if (await agents.ExistById(this.User.GetUserId()) == false)
+            if ((await agents.ExistById(this.User.GetUserId())) == false)
             {
                 return RedirectToAction(nameof(AgentController.Become), "Agent");
             }
@@ -58,12 +58,12 @@ namespace HouseRentingSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> Add(HouseFormModel model)
         {
-            if (await agents.ExistById(this.User.GetUserId()) == false)
+            if ((await agents.ExistById(this.User.GetUserId())) == false)
             {
                 return RedirectToAction(nameof(AgentController.Become), "Agent");
             }
 
-            if (!this.houses.CategoryExist(model.CategoryId))
+            if ((await houses.CategoryExist(model.CategoryId)) == false)
             {
                 this.ModelState.AddModelError(nameof(model.CategoryId),
                     "Category does not exist.");
@@ -76,12 +76,11 @@ namespace HouseRentingSystem.Controllers
                 return View(model);
             }
 
-            var agentId = agents.GetAgentId(this.User.GetUserId());
+            int agentId = await agents.GetAgentId(this.User.GetUserId());
 
-            var newHouseId = houses.Create(model.Title, model.Address, model.Description,
-                model.ImageUrl, model.PricePerMonth, model.CategoryId, agentId);
+            int Id = await houses.Create(model, agentId);
 
-            return RedirectToAction(nameof(Details), new { id = newHouseId });
+            return RedirectToAction(nameof(Details), new { Id });
         }
 
         [HttpGet]

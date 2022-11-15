@@ -8,18 +8,17 @@ namespace HouseRentingSystem.Core.Services
 {
     public class HouseService : IHouseService
     {
-        //private readonly IRepository repo;
-        private readonly HouseRentingDbContext context;
+        private readonly IRepository repo;
 
-        public HouseService(HouseRentingDbContext _context)
+        public HouseService(IRepository _repo)
         {
-            //repo = _repo;
-            context = _context;
+            repo = _repo;
         }
 
         public async Task<IEnumerable<HouseCategoryServiceModel>> AllCategories()
         {
-            return await context.Categories
+            return await repo.AllReadonly<Category>()
+                .OrderBy(c => c.Name)
                 .Select(x => new HouseCategoryServiceModel 
                 { 
                     Id = x.Id,
@@ -28,33 +27,33 @@ namespace HouseRentingSystem.Core.Services
                 .ToListAsync();
         }
 
-        public bool CategoryExist(int categoryId)
+        public async Task<bool> CategoryExist(int categoryId)
         {
-            return context.Categories.Any(c => c.Id == categoryId);
+            return await repo.All<Category>().AnyAsync(c => c.Id == categoryId);
         }
 
-        public int Create(string title, string address, string description, string imageUrl, decimal price, int categoryId, int agentId)
+        public async Task<int> Create(HouseFormModel model, int agentId)
         {
             var house = new House()
             {
-                Title = title,
-                Address = address,
-                Description = description,
-                ImageUrl = imageUrl,
-                PricePerMonth = price,
-                AgentId = agentId,
-                CategoryId = categoryId
+                Title = model.Title,
+                Address = model.Address,
+                Description = model.Description,
+                ImageUrl = model.ImageUrl,
+                PricePerMonth = model.PricePerMonth,
+                CategoryId = model.CategoryId,
+                AgentId = agentId
             };
 
-            context.Houses.AddAsync(house);
-            context.SaveChangesAsync();
+            await repo.AddAsync(house);
+            await repo.SaveChangesAsync();
 
             return house.Id;
         }
 
         public async Task<IEnumerable<HouseHomeModel>> LastThreeHouses()
         {
-            return await context.Houses
+            return await repo.AllReadonly<House>()
                 .OrderByDescending(x => x.Id)
                 .Select(x => new HouseHomeModel 
                 {

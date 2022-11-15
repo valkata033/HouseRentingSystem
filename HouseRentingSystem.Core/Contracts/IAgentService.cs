@@ -10,7 +10,7 @@
 
         Task Create(string userId, string phoneNumber);
 
-        int GetAgentId(string userId);
+        Task<int> GetAgentId(string userId);
 
     }
 }
