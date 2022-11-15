@@ -3,6 +3,7 @@ using HouseRentingSystem.Core.Models.House;
 using HouseRentingSystem.Infrastructure.Data;
 using HouseRentingSystem.Infrastructure.Data.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace HouseRentingSystem.Core.Services
 {
@@ -82,6 +83,43 @@ namespace HouseRentingSystem.Core.Services
                 .Select(x => x.Name)
                 .Distinct()
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<HouseServiceModel>> AllHousesByAgentId(int agentId)
+        {
+            var houses = await repo
+                .AllReadonly<House>()
+                .Where(x => x.AgentId == agentId)
+                .ToListAsync();
+
+            return ProjectToModel(houses);
+        }
+
+        private List<HouseServiceModel> ProjectToModel(List<House> houses)
+        {
+            var resultHouses = houses
+                .Select(x => new HouseServiceModel
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    Address = x.Address,
+                    ImageUrl = x.ImageUrl,
+                    PricePerMonth = x.PricePerMonth,
+                    IsRented = x.RenterId != null
+                })
+                .ToList();
+
+            return resultHouses;
+        }
+
+        public async Task<IEnumerable<HouseServiceModel>> AllHousesByUserId(string userId)
+        {
+            var houses = await repo
+            .AllReadonly<House>()
+                .Where(x => x.RenterId == userId)
+                .ToListAsync();
+
+            return ProjectToModel(houses);
         }
 
         public async Task<bool> CategoryExist(int categoryId)
