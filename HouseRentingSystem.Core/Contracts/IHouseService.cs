@@ -22,5 +22,10 @@ namespace HouseRentingSystem.Core.Contracts
 
         Task<IEnumerable<HouseServiceModel>> AllHousesByUserId(string userId);
 
+        Task<bool> Exists(int Id);
+
+        Task<HouseDetailsServiceModel> HouseDetailsById(int Id);
+
+
     }
 }
