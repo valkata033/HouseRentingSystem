@@ -4,7 +4,6 @@ using HouseRentingSystem.Core.Models.House;
 using HouseRentingSystem.Infrastructure.Data;
 using HouseRentingSystem.Infrastructure.Data.Common;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace HouseRentingSystem.Core.Services
 {
@@ -187,6 +186,94 @@ namespace HouseRentingSystem.Core.Services
                     }
                 })
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task Edit(int houseId, string title, string address, string description,
+            string imageUrl, decimal price, int categoryId)
+        {
+            var house = repo.All<House>().First(x => x.Id == houseId);
+
+            house.Title = title;
+            house.Address = address;
+            house.Description = description;
+            house.ImageUrl = imageUrl;
+            house.PricePerMonth = price;
+            house.CategoryId = categoryId;
+
+            await repo.SaveChangesAsync();
+        }
+
+        public async Task<bool> HasAgentWithId(int houseId, string currentUserId)
+        {
+            var house = await repo.AllReadonly<House>().FirstOrDefaultAsync(x => x.Id == houseId);
+
+            var agent = await repo.AllReadonly<Agent>().FirstOrDefaultAsync(x => x.Id == house.AgentId);
+
+            if (agent == null)
+            {
+                return false;
+            }
+
+            if (agent.UserId != currentUserId)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public async Task<int> GetHouseCategoryId(int houseId)
+        {
+            var house = await repo.AllReadonly<House>().FirstOrDefaultAsync(x => x.Id == houseId);
+            return house?.CategoryId ?? -1;
+        }
+
+        public async Task Delete(int houseId)
+        {
+            var house = await repo.All<House>().FirstOrDefaultAsync(x => x.Id == houseId);
+
+            repo.Delete(house);
+            await repo.SaveChangesAsync();
+        }
+
+        public async Task<bool> IsRented(int id)
+        {
+            var house = await repo.AllReadonly<House>().FirstOrDefaultAsync(x => x.Id == id);
+
+            return house.RenterId != null;
+        }
+
+        public async Task<bool> IsRentedByUserById(int houseId, string userId)
+        {
+            var house = await repo.AllReadonly<House>().FirstOrDefaultAsync(x => x.Id == houseId);
+
+            if (house == null)
+            {
+                return false;
+            }
+
+            if (house.RenterId != null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public async Task Rent(int houseId, string userId)
+        {
+            var house = await repo.AllReadonly<House>().FirstOrDefaultAsync(x => x.Id == houseId);
+
+            house.RenterId = userId;
+            await repo.SaveChangesAsync();
+        }
+
+        public async Task Leave(int houseId)
+        {
+            var house = await repo.AllReadonly<House>().FirstOrDefaultAsync(x => x.Id == houseId);
+
+            house.RenterId = null;
+            await repo.SaveChangesAsync();
         }
     }
 }

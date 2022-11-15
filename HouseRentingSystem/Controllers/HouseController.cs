@@ -115,32 +115,144 @@ namespace HouseRentingSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var model = new HouseFormModel();
+            if (!await houses.Exists(id))
+            {
+                return BadRequest();
+            }
 
-            return View(model);
+            if (!await houses.HasAgentWithId(id, this.User.GetUserId()))
+            {
+                return Unauthorized();
+            }
+
+            var house = await houses.HouseDetailsById(id);
+
+            var houseCategoryId = await houses.GetHouseCategoryId(house.Id);
+
+            var houseModel = new HouseFormModel()
+            {
+                Address = house.Address,
+                Title = house.Title,
+                Description = house.Description,
+                ImageUrl = house.ImageUrl,
+                PricePerMonth = house.PricePerMonth,
+                CategoryId = houseCategoryId,
+                Categories = await houses.AllCategories()
+            };
+
+            return View(houseModel);
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(int id, HouseFormModel model)
         {
+            if (!await houses.Exists(id))
+            {
+                return View();
+            }
+
+            if (!await houses.HasAgentWithId(id, this.User.GetUserId()))
+            {
+                return Unauthorized();
+            }
+
+            if (!await houses.CategoryExist(model.CategoryId))
+            {
+                ModelState.AddModelError(nameof(model.CategoryId), "Category does not exist!");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                model.Categories = await houses.AllCategories();
+                return View(model);
+            }
+
+            await houses.Edit(id, model.Title, model.Address, model.Description, model.ImageUrl,
+                model.PricePerMonth, model.CategoryId);
+
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
+            if (!await houses.Exists(id))
+            {
+                return BadRequest();
+            }
+
+            if (!await houses.HasAgentWithId(id, this.User.GetUserId()))
+            {
+                return Unauthorized();
+            }
+
+            var house = await houses.HouseDetailsById(id);
+
+            var model = new HouseDetailsViewModel()
+            {
+                Title = house.Title,
+                Address = house.Address,
+                ImageUrl = house.ImageUrl
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(HouseDetailsViewModel model)
+        {
+            if (!await houses.Exists(model.Id))
+            {
+                return BadRequest();
+            }
+
+            if (!await houses.HasAgentWithId(model.Id, this.User.GetUserId()))
+            {
+                return Unauthorized();
+            }
+
+            await houses.Delete(model.Id);
+
             return RedirectToAction(nameof(All));
         }
 
         [HttpPost]
-        public IActionResult Rent(int id)
+        public async Task<IActionResult> Rent(int id)
         {
+            if (!await houses.Exists(id))
+            {
+                return BadRequest();
+            }
+
+            if (await agents.ExistById(User.GetUserId()))
+            {
+                return Unauthorized();
+            }
+
+            if (await houses.IsRented(id))
+            {
+                return BadRequest();
+            }
+
+            await houses.Rent(id, User.GetUserId());
+
             return RedirectToAction(nameof(Mine));
         }
 
         [HttpPost]
-        public IActionResult Leave(int id)
+        public async Task<IActionResult> Leave(int id)
         {
+            if (!await houses.Exists(id) || !await houses.IsRented(id))
+            {
+                return BadRequest();
+            }
+
+            if (!await houses.IsRentedByUserById(id, User.GetUserId()))
+            {
+                return Unauthorized();
+            }
+
+            await houses.Leave(id);
+
             return RedirectToAction(nameof(Mine));
         }
     }
