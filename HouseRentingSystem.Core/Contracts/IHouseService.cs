@@ -1,9 +1,4 @@
 ﻿using HouseRentingSystem.Core.Models.House;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HouseRentingSystem.Core.Contracts
 {
@@ -17,6 +12,11 @@ namespace HouseRentingSystem.Core.Contracts
 
         Task<int> Create(HouseFormModel model, int agentId);
 
+        Task<HousesQueryServiceModel> All(string category = null, string searchItem = null,
+            HouseSorting sorting = HouseSorting.Newest, int currentPage = 1,
+            int housePerPage = 1);
+
+        Task<IEnumerable<string>> AllCategoriesNames();
 
     }
 }
