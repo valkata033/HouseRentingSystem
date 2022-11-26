@@ -115,7 +115,7 @@ namespace HouseRentingSystem.Core.Services
         public async Task<IEnumerable<HouseServiceModel>> AllHousesByUserId(string userId)
         {
             var houses = await repo
-            .AllReadonly<House>()
+                .AllReadonly<House>()
                 .Where(x => x.RenterId == userId)
                 .ToListAsync();
 

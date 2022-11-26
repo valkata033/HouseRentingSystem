@@ -196,7 +196,7 @@ namespace HouseRentingSystem.Controllers
 
             return View(model);
         }
-
+            
         [HttpPost]
         public async Task<IActionResult> Delete(HouseDetailsViewModel model)
         {
